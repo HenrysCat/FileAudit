@@ -2,6 +2,8 @@
 
 FileAudit is a small internal PHP dashboard for storing and searching Windows file audit events. It uses plain PHP, MariaDB, PDO, and no external dependencies.
 
+![FileAudit dashboard](FileAudit%20screenshot.jpg)
+
 ## Install on Debian
 
 ```bash
