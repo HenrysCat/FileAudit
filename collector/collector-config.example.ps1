@@ -1,0 +1,9 @@
+$ApiUrl = "https://fileaudit.local/api/ingest.php"
+$ApiToken = "CHANGE_ME"
+$ServerName = $env:COMPUTERNAME
+$EventIds = @(4656,4659,4660,4663,4670,5145)
+$BatchSize = 100
+$MaxEventsPerRun = 2000
+$FirstRunLookbackMinutes = 30
+$StatePath = "C:\ProgramData\FileAudit\state.json"
+$LogPath = "C:\ProgramData\FileAudit\collector.log"
