@@ -1,6 +1,6 @@
 # FileAudit
 
-FileAudit is a small internal PHP dashboard for storing and searching Windows file audit events. Phase 1 uses plain PHP, MariaDB, PDO, and no external dependencies.
+FileAudit is a small internal PHP dashboard for storing and searching Windows file audit events. It uses plain PHP, MariaDB, PDO, and no external dependencies.
 
 ## Install on Debian
 
@@ -162,9 +162,9 @@ If you see `Bearer token required`, check that the curl command starts with `cur
 -H "Authorization: Bearer replace_this_with_a_long_random_token"
 ```
 
-## Phase 2: deletion correlation and Windows collector
+## Deletion correlation and Windows collector
 
-Phase 2 adds support for Windows event IDs `4656` and `4659` and stores correlation fields used to match deletion confirmation events with nearby path-bearing events.
+FileAudit supports Windows event IDs `4656` and `4659` and stores correlation fields used to match deletion confirmation events with nearby path-bearing events.
 
 Required event IDs:
 
@@ -179,7 +179,7 @@ Event `4660` often confirms deletion but does not include the file or folder pat
 
 ### Database schema
 
-Fresh installs use `database/schema.sql`, which already includes the Phase 2 correlation fields and indexes. No separate migration is required.
+Fresh installs use `database/schema.sql`, which already includes the correlation fields and indexes. No separate migration is required.
 
 ### Windows Server auditing setup
 
