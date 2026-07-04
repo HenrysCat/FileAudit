@@ -67,6 +67,7 @@ if (!is_array($decoded)) {
 $events = array_is_list($decoded) ? $decoded : [$decoded];
 $inserted = 0;
 $duplicates = 0;
+$ignored = 0;
 $errors = [];
 
 $sql = "
@@ -100,6 +101,11 @@ foreach ($events as $index => $event) {
 
     if ($serverName === null || $eventId === false || $recordId === false || $timeCreated === null || $action === null) {
         $errors[] = 'Event ' . $index . ': server_name, event_id, record_id, time_created, and action are required';
+        continue;
+    }
+
+    if (ignored_tmp_path($event)) {
+        $ignored++;
         continue;
     }
 
@@ -142,5 +148,6 @@ json_response([
     'ok' => $errors === [],
     'inserted' => $inserted,
     'duplicates' => $duplicates,
+    'ignored' => $ignored,
     'errors' => $errors,
 ], $errors === [] ? 200 : 400);

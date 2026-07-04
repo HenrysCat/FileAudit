@@ -305,9 +305,10 @@ Expected interpretation notes:
 - Moves may appear as `Deleted`, `Created`, or `Modified` depending on whether the move stays on the same volume and how the client performs it.
 - Event `4660` confirms deletion but may not contain the path, so FileAudit uses related `4656`, `4659`, and `4663` events with the same Handle ID and Logon ID for correlation.
 - Event `4659` means Windows requested a handle with intent to delete. FileAudit stores it as `DeleteRequested`, and the dashboard can display correlated path-bearing events as `Deleted` when `4659` or `4660` evidence exists.
+- Event `4656` is kept as `HandleRequested` even when its access list includes DELETE, because Windows can include DELETE among several requested rights for create/write workflows. It is useful for correlation, but noisy for direct deletion classification.
 - Event `4663` with access mask `0x10000` means DELETE access was requested or used successfully. It does not always prove the file was removed, so the collector records it as `DeleteRequested`.
 - The Deletions page shows both `Deleted` and `DeleteRequested` events so path-bearing deletion activity remains visible.
 
 For deletion reporting, do not rely on `4660` alone. Windows often logs the useful path-bearing signal as `4663` with DELETE access immediately before, or sometimes instead of, a `4660` confirmation. FileAudit displays stored `DeleteRequested` events as `Delete Activity` in tables because they are usually the best way to answer who performed deletion-related activity against a specific path.
 
-To reduce application noise in reports, consider filtering out paths ending in `.tmp` or Office lock files containing `~$`.
+To reduce application noise, FileAudit ignores paths ending in `.tmp` during collection/API ingest and hides any existing `.tmp` rows from dashboard lists. Office lock files containing `~$` are still collected because they can be useful for identifying who opened a document.

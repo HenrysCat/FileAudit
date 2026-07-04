@@ -57,17 +57,19 @@ if (!empty($event['logon_id']) && !empty($event['username'])) {
 }
 
 if ($relatedWhere) {
-    $relatedSql = '
+    $relatedSql = "
         SELECT id, time_created, event_id, action, username, object_name, relative_target_name,
                share_name, access_mask, access_list, handle_id, logon_id
         FROM audit_events
         WHERE id <> :id
           AND server_name = :server_name
           AND time_created BETWEEN :time_from AND :time_to
-          AND (' . implode(' OR ', $relatedWhere) . ')
+          AND (object_name IS NULL OR object_name NOT LIKE '%.tmp')
+          AND (relative_target_name IS NULL OR relative_target_name NOT LIKE '%.tmp')
+          AND (" . implode(' OR ', $relatedWhere) . ")
         ORDER BY time_created ASC, id ASC
         LIMIT 50
-    ';
+    ";
     $relatedStmt = db()->prepare($relatedSql);
     $relatedStmt->execute($relatedParams);
     $relatedEvents = $relatedStmt->fetchAll();

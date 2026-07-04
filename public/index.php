@@ -13,6 +13,8 @@ $summaryStmt = $pdo->query("
         COALESCE(SUM(action = 'FailedAccess'), 0) AS failed_access
     FROM audit_events
     WHERE time_created >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+      AND (object_name IS NULL OR object_name NOT LIKE '%.tmp')
+      AND (relative_target_name IS NULL OR relative_target_name NOT LIKE '%.tmp')
 ");
 $summary = $summaryStmt->fetch() ?: [];
 $events = fetch_recent_events(null, [], 100);

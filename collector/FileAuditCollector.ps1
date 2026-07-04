@@ -201,12 +201,7 @@ function Get-FileAuditAction {
         4660 { return "Deleted" }
         4670 { return "PermissionChanged" }
         4659 { return "DeleteRequested" }
-        4656 {
-            if (Test-DeleteAccess $AccessMask $AccessList) {
-                return "DeleteRequested"
-            }
-            return "HandleRequested"
-        }
+        4656 { return "HandleRequested" }
         4663 {
             if (Test-DeleteAccess $AccessMask $AccessList) {
                 return "DeleteRequested"
@@ -308,6 +303,20 @@ function Send-FileAuditBatch {
         -TimeoutSec 60
 }
 
+function Test-IgnoredTmpPath {
+    param([System.Collections.IDictionary]$AuditEvent)
+
+    foreach ($field in @("object_name", "relative_target_name")) {
+        if ($AuditEvent.Contains($field) -and -not [string]::IsNullOrWhiteSpace([string]$AuditEvent[$field])) {
+            if ([string]$AuditEvent[$field] -match '(?i)\.tmp$') {
+                return $true
+            }
+        }
+    }
+
+    return $false
+}
+
 try {
     $stateDir = Split-Path -Parent $StatePath
     if (-not (Test-Path -LiteralPath $stateDir)) {
@@ -365,8 +374,30 @@ try {
     }
 
     $converted = @()
+    $ignoredTmp = 0
     foreach ($event in $events) {
-        $converted += ConvertTo-FileAuditEvent -Event $event
+        $auditEvent = ConvertTo-FileAuditEvent -Event $event
+        if (Test-IgnoredTmpPath -AuditEvent $auditEvent) {
+            $ignoredTmp++
+            continue
+        }
+
+        $converted += $auditEvent
+    }
+
+    Write-CollectorLog "Ignored .tmp events=$ignoredTmp"
+
+    if ($converted.Count -eq 0) {
+        $newLastRecordId = [int64]($events[-1].RecordId)
+        $newState = @{
+            last_record_id = $newLastRecordId
+            updated_at = (Get-Date).ToUniversalTime().ToString("o")
+        }
+
+        $newState | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $StatePath -Encoding UTF8
+        Write-CollectorLog "No postable events after filtering."
+        Write-CollectorLog "Saved last_record_id=$newLastRecordId"
+        exit 0
     }
 
     $posted = 0

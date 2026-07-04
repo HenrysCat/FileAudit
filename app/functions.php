@@ -110,6 +110,7 @@ function action_badge(string $action): string
 function fetch_recent_events(?string $where = null, array $params = [], int $limit = 100, int $offset = 0): array
 {
     $sql = 'SELECT * FROM audit_events';
+    $where = visible_events_where($where);
 
     if ($where) {
         $sql .= ' WHERE ' . $where;
@@ -132,6 +133,7 @@ function fetch_recent_events(?string $where = null, array $params = [], int $lim
 function count_events(?string $where = null, array $params = []): int
 {
     $sql = 'SELECT COUNT(*) FROM audit_events';
+    $where = visible_events_where($where);
 
     if ($where) {
         $sql .= ' WHERE ' . $where;
@@ -141,6 +143,31 @@ function count_events(?string $where = null, array $params = []): int
     $stmt->execute($params);
 
     return (int)$stmt->fetchColumn();
+}
+
+function visible_events_where(?string $where = null): string
+{
+    $visible = "(
+        (object_name IS NULL OR object_name NOT LIKE '%.tmp')
+        AND (relative_target_name IS NULL OR relative_target_name NOT LIKE '%.tmp')
+    )";
+
+    if (!$where) {
+        return $visible;
+    }
+
+    return '(' . $where . ') AND ' . $visible;
+}
+
+function ignored_tmp_path(array $event): bool
+{
+    foreach (['object_name', 'relative_target_name'] as $field) {
+        if (!empty($event[$field]) && preg_match('/\.tmp$/i', (string)$event[$field])) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function current_page(): int
