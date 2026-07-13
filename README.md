@@ -308,6 +308,7 @@ Expected interpretation notes:
 - Event `4656` is kept as `HandleRequested` even when its access list includes DELETE, because Windows can include DELETE among several requested rights for create/write workflows. It is useful for correlation, but noisy for direct deletion classification.
 - Event `4663` with access mask `0x10000` means DELETE access was requested or used successfully. It does not always prove the file was removed, so the collector records it as `DeleteRequested`.
 - The Deletions page shows both `Deleted` and `DeleteRequested` events so path-bearing deletion activity remains visible.
+- The collector recognizes both text access names and Windows `%%` access codes, including `%%1537` for DELETE, `%%4422` for DeleteChild, `%%4417`/`%%4418` for write/create activity, and `%%1539`/`%%1540` for permission/owner changes.
 
 For deletion reporting, do not rely on `4660` alone. Windows often logs the useful path-bearing signal as `4663` with DELETE access immediately before, or sometimes instead of, a `4660` confirmation. FileAudit displays stored `DeleteRequested` events as `Delete Activity` in tables because they are usually the best way to answer who performed deletion-related activity against a specific path.
 

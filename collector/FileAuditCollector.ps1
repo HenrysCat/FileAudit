@@ -141,7 +141,10 @@ function Test-AccessText {
 function Test-DeleteAccess {
     param([string]$AccessMask, [string]$AccessList)
 
-    return (Test-AccessMaskBit $AccessMask 0x10000) -or (Test-AccessText $AccessList @("DELETE"))
+    $maskHasDelete = (Test-AccessMaskBit $AccessMask 0x10000) -or (Test-AccessMaskBit $AccessMask 0x40)
+    $textHasDelete = Test-AccessText $AccessList @("DELETE", "DeleteChild", "%%1537", "%%4422")
+
+    return $maskHasDelete -or $textHasDelete
 }
 
 function Test-WriteAccess {
@@ -155,12 +158,17 @@ function Test-WriteAccess {
     $textHasWrite = Test-AccessText $AccessList @(
         "WriteData",
         "AppendData",
+        "WriteEA",
         "WriteAttributes",
         "WriteExtendedAttributes",
         "AddFile",
         "AddSubdirectory",
         "CreateFiles",
-        "CreateFolders"
+        "CreateFolders",
+        "%%4417",
+        "%%4418",
+        "%%4420",
+        "%%4424"
     )
 
     return $maskHasWrite -or $textHasWrite
@@ -170,7 +178,7 @@ function Test-PermissionAccess {
     param([string]$AccessMask, [string]$AccessList)
 
     $maskHasPermission = (Test-AccessMaskBit $AccessMask 0x40000) -or (Test-AccessMaskBit $AccessMask 0x80000)
-    $textHasPermission = Test-AccessText $AccessList @("WRITE_DAC", "WRITE_OWNER", "ChangePermissions", "TakeOwnership")
+    $textHasPermission = Test-AccessText $AccessList @("WRITE_DAC", "WRITE_OWNER", "ChangePermissions", "TakeOwnership", "%%1539", "%%1540")
 
     return $maskHasPermission -or $textHasPermission
 }
