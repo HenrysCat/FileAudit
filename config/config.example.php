@@ -18,4 +18,9 @@ return [
     'TRUSTED_COLLECTOR_IPS' => [
         // '192.0.2.10',
     ],
+
+    // DNS query records are retained independently from file audit events.
+    'DNS_LOG_RETENTION_DAYS' => 7,
+    // Keep at most one query per computer IP and domain during this interval.
+    'DNS_LOG_DEDUPLICATE_MINUTES' => 1,
 ];

@@ -42,6 +42,12 @@ Import the schema:
 mysql -u fileaudit_user -p fileaudit < database/schema.sql
 ```
 
+For an existing installation created before DNS logging was added, import the DNS table once:
+
+```bash
+mysql -u fileaudit_user -p fileaudit < database/dns-schema.sql
+```
+
 Run that import command from the normal Debian shell prompt, not from inside the `mysql>` or `MariaDB>` prompt. If you are already inside MariaDB, type `exit` first.
 
 ## Configure the app
@@ -65,6 +71,14 @@ Set `APP_TIMEZONE` to the timezone you want displayed in the dashboard, for exam
 ```php
 'APP_TIMEZONE' => 'Europe/London',
 ```
+
+DNS query records have their own retention period. The default is seven days:
+
+```php
+'DNS_LOG_RETENTION_DAYS' => 7,
+```
+
+To reduce repeated browsing noise, FileAudit also keeps only one DNS query for the same computer IP and domain within one minute. Change `DNS_LOG_DEDUPLICATE_MINUTES` in `config/config.php` to adjust the interval, or set it to `0` to retain every query.
 
 Collector timestamps are stored in UTC; the dashboard converts them for display.
 
@@ -285,6 +299,20 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Path\To\FileAuditCol
 ```
 
 The example uses `SYSTEM`. You can instead use a dedicated service account if that account can read the local Security event log.
+
+## DNS URL Log collector
+
+The **URL Log** menu records DNS queries, so it shows the computer IP address and requested domain name. DNS cannot provide the full URL path, such as `/reports/page.html`.
+
+The separate `DnsLogCollector.ps1` reads `C:\dnslog\dnslog.txt` on the DNS server and uses the same `collector-config.ps1`, API token, and server name as `FileAuditCollector.ps1`. It keeps its own read-position state in `dns-state.json` and writes diagnostics to `dns-collector.log`.
+
+1. Copy the `collector` directory to the DNS server.
+2. Add the DNS settings from `collector-config.example.ps1` to its shared `collector-config.ps1`, especially `$DnsApiUrl` and `$DnsLogPath`.
+3. Run `DnsLogCollector.ps1` manually as an account allowed to read the DNS debug log.
+4. Confirm records appear under **URL Log**.
+5. Review and run `install-dns-collector-scheduled-task.example.ps1` to run it every five minutes.
+
+The built-in parser targets the standard Windows DNS debug-log query lines containing `UDP Rcv` or `TCP Rcv`. Other DNS products or custom debug formats may need a parser adjustment.
 
 ### Collector test checklist
 

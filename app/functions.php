@@ -68,6 +68,7 @@ function render_header(string $title): void
             <a href="/modifications.php">Modifications</a>
             <a href="/permissions.php">Permissions</a>
             <a href="/failed.php">Failed</a>
+            <a href="/url-log.php">URL Log</a>
             <a href="/logout.php">Logout</a>
         </nav>
     </header>
